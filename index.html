@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <style>
+        thead {
+            background-color: rgb(192, 192, 255);
+        }
+
+        input {
+            width: 100%;
+        }
+
+        .container {
+            border: 1px solid rgba(0, 0, 0, .11);
+            ;
+            padding: 10px;
+            width: 500px
+        }
+
+        .controls-item {
+            display: inline-block;
+        }
+
+        .btn {
+            margin: 1px;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <input type="search" id="search-input">
+
+    <table class="table table-dark" id="our-table">
+        <tr class="bg-info">
+            <th data-column='id' data-order='desc'>ID &#9660</th>
+            <th data-column='name' data-order='desc'>Name &#9660</th>
+            <th data-column='email' data-order='desc'>Email &#9660</th>
+            <ul type=”circle”>
+        </tr>
+
+        <tbody id="myTable">
+            <div class="container ">
+                <div id="pagination-wrapper"></div>
+            </div>
+
+
+        </tbody>
+    </table>
+
+    <script src="https://app.zenclass.in/sheets/v1/js/zen/suite/bundle.js"></script>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        var request = new XMLHttpRequest();
+        // console.log(request);
+        //open a connection
+        request.open('GET', 'https://gist.githubusercontent.com/rvsp/add40254aa126f045837fa5b51f47f1f/raw/4d724bfabf4cce7379a386e23bef6576ab99a2f9/pagination.json');
+        //sending a connection
+        request.send();
+        //page load
+
+
+
+        request.onload = function () {
+            // console.log("Page loaded")
+            let data = JSON.parse(request.response)
+            console.log(data);
+
+            let state = {
+                'querySet': data,
+                'page': 1,
+                'rows': 10,
+                'window': 5,
+            }
+
+            function pagination(querySet, page, rows) {
+
+                var trimStart = (page - 1) * rows
+                var trimEnd = trimStart + rows
+
+                var trimmedData = querySet.slice(trimStart, trimEnd)
+
+                var pages = Math.round(querySet.length / rows);
+
+                return {
+                    'querySet': trimmedData,
+                    'pages': pages,
+                }
+            }
+
+            function pageButtons(pages) {
+                var wrapper = document.getElementById('pagination-wrapper')
+
+                wrapper.innerHTML = ``
+                console.log('Pages:', pages)
+
+                var maxLeft = (state.page - Math.floor(state.window / 2))
+                var maxRight = (state.page + Math.floor(state.window / 2))
+
+                if (maxLeft < 1) {
+                    maxLeft = 1
+                    maxRight = state.window
+                }
+
+                if (maxRight > pages) {
+                    maxLeft = pages - (state.window - 1)
+
+                    if (maxLeft < 1) {
+                        maxLeft = 1
+                    }
+                    maxRight = pages
+                }
+
+
+
+                for (var page = maxLeft; page <= maxRight; page++) {
+                    wrapper.innerHTML += `<button value=${page} class="page btn btn-sm btn-info">${page}</button>`
+                }
+
+                if (state.page != 1) {
+                    wrapper.innerHTML = `<button value=${1} class="page btn btn-sm btn-info">&#171; First</button>` + wrapper.innerHTML
+                }
+
+                if (state.page != pages) {
+                    wrapper.innerHTML += `<button value=${pages} class="page btn btn-sm btn-info">Last &#187;</button>`
+                }
+
+                $('.page').on('click', function () {
+                    $('#myTable').empty()
+
+                    state.page = Number($(this).val())
+
+                    buildTable()
+                })
+
+            }
+
+
+
+            $('th').on('click', function () {
+                let column = $(this).data('column');
+                let order = $(this).data('order');
+                console.log("column was clicked", column, order)
+                var text = $(this).html()
+                text = text.substring(0, text.length - 1)
+
+                // if (order == 'desc') {
+                //     $(this).data('order', "asc")
+                //     data = data.sort((a,b) => a < b ? 1 : -1)
+                //     text += '&#9660'
+                // } else {
+                //     $(this).data('order', "desc")
+                //     data = data.sort((a,b) => a > b ? 1 : -1)
+                //     text += '&#9650'
+                // }
+                // $(this).html(text)
+                // buildTable(data);
+
+
+
+                if (column == 'id') {
+
+                    if (order == 'desc') {
+
+                        $(this).data('order', "asc")
+
+                        data = data.sort((a, b) => (a[column]) > (b[column]) ? 1 : -1)
+
+                        text += '&#9660'
+
+                    } else {
+
+                        $(this).data('order', "desc")
+
+                        data = data.sort((a, b) => (a[column]) < (b[column]) ? 1 : -1)
+
+                        text += '&#9650'
+
+                    }
+
+                }
+
+                else
+
+                    if (order == 'desc') {
+
+                        $(this).data('order', "asc")
+
+                        data = data.sort((a, b) => a[column] > b[column] ? 1 : -1)
+
+                        text += '&#9660'
+
+                    } else {
+
+                        $(this).data('order', "desc")
+
+                        data = data.sort((a, b) => a[column] < b[column] ? 1 : -1)
+
+                        text += '&#9650'
+
+
+                    } $(this).html(text)
+                buildTable(data);
+            })
+
+            // let nameSort = value2.sort((a,b) => a>b ? 1: -1 )
+            // console.log(nameSort)
+
+            let arr = data.sort((a, b) => a < b ? 1 : -1)
+            console.log(arr)
+
+            $('#search-input').on('keyup', function () {
+                let value = $(this).val()
+                console.log('value:', value)
+                let str = searchTable(value, data)
+                buildTable(str);
+
+            })
+
+            buildTable(data);
+
+            function searchTable(value, dat) {
+
+                let filteredData = [];
+
+                for (let i = 0; i < dat.length; i++) {
+                    value = value.toLowerCase();
+                    let name = value2[i].toLowerCase();
+
+                    if (name.includes(value)) {
+                        filteredData.push(value2[i]);
+                    }
+
+                }
+
+
+                return filteredData;
+
+            }
+
+
+            function buildTable() {
+                var table = $('#myTable')
+
+                var dat = pagination(state.querySet, state.page, state.rows)
+                var myList = dat.querySet
+
+                for (var i = 1 in myList) {
+                    //Keep in mind we are using "Template Litterals to create rows"
+                    var row = `<tr>
+                  <td>${myList[i].id}</td>
+                  <td>${myList[i].name}</td>
+                  <td>${myList[i].email}</td>
+                  `
+                    table.append(row)
+                }
+
+                pageButtons(dat.pages)
+            }
+
+
+
+
+
+
+
+        }
+    </script>
+
+</body>
+
+</html>
